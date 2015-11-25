@@ -4,6 +4,7 @@
   "description": "Batch GIT cherry-pick",
   "private": true,
   "devDependencies": {
+    "colors": "^1.1.2",
     "lodash": "^3.10.0",
     "shelljs": "^0.5.3",
     "strip-ansi": "^3.0.0"

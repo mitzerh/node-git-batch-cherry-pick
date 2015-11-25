@@ -5,6 +5,7 @@ var dir = __dirname,
     shell = require('shelljs'),
     lodash = require('lodash'),
     stripAnsi = require('strip-ansi'),
+    colors = require('colors'),
     Helper = require(dir + '/helper');
 
     // ticket - REQUIRED
@@ -17,7 +18,7 @@ var GIT_REGEX = Helper.getOpt('regex') || false,
     GIT_LOG_LINES = Helper.getOpt('nlogs') || 5000;
 
 if (!GIT_REGEX) {
-    log('requires a regex!\n');
+    log('requires a regex!'.red, '\n');
     return false;
 }
 
@@ -43,13 +44,13 @@ function runGitCmd(cmd) {
 var currBranch = runGitCmd('git branch 2> /dev/null | sed -e \'/^[^*]/d\' -e \'s/* \(.*\)/ (\1)/\'');
 
 if (currBranch.output.length < 1) {
-    log('The path @ ' + GIT_PATH + ' is not a GIT repository..\n');
+    log('The path @ ' + GIT_PATH + ' is not a GIT repository..'.red, '\n');
     return false;
 } else {
     if (GIT_PATH !== './') {
-        log('Repository directory      :', GIT_PATH);
+        log('Repository directory      :'.green, GIT_PATH);
     }
-    log('Repository current branch :', (stripAnsi(currBranch.output)).replace(/[^a-z0-9\-_\/]/g, ''));
+    log('Repository current branch :'.green, (stripAnsi(currBranch.output)).replace(/[^a-z0-9\-_\/]/g, ''));
 }
 
 
@@ -57,8 +58,10 @@ if (currBranch.output.length < 1) {
 var ITEMS = (function(){
 
     var arr = [],
+        separator = '|@@|',
+        format = ['%h', '%cn', '%s'].join(separator),
         // run git command to get logs
-        cmd = 'git log --format="%h|@@|%cn|@@|%s" ' + ((GIT_LOG_LINES && GIT_LOG_LINES !== 'all') ? ('-' + GIT_LOG_LINES) : ''),
+        cmd = ['git log --format="'+format+'"', ((GIT_LOG_LINES && GIT_LOG_LINES !== 'all') ? ('-' + GIT_LOG_LINES) : '')].join(' '),
         res = runGitCmd(cmd),
         output = stripAnsi(res.output);
 
@@ -78,12 +81,12 @@ var ITEMS = (function(){
 
             if (item.length > 1) {
 
-                var sp = item.split('|@@|'),
+                var sp = item.split(separator),
                     hash = sp[0],
                     author = sp[1],
-                    comment = sp[2];
+                    comment = sp[2] || '';
 
-                if (hash && comment && comment.length > 0) {
+                if (comment.length > 0) {
 
                     // if regex found
                     if (requiredCondition(comment)) {
@@ -110,18 +113,18 @@ var ITEMS = (function(){
 
         if (found.length > 0) {
 
-            var hashArr = [];
+            var hashArr = [],
+                cmdArr = [];
 
             // print out commits
-            log('\nCommits' + ((GIT_AUTHOR) ? 'by author search "'+GIT_AUTHOR+'"' : '') + ':' );
+            log(('\nCommits' + ((GIT_AUTHOR) ? ' by author search "'+GIT_AUTHOR+'"' : '') + ':').green);
             found.forEach(function(item){
-                log(item.hash, item.comment, '(by: '+item.author+')');
+                log(item.hash.yellow, item.comment, ('(by: '+item.author+')').cyan);
                 hashArr.push(item.hash);
             });
 
             // build cherry-pick command
-            log('\nGIT CHERRY PICK COMMAND:');
-            var cmdArr = [];
+            log('\nGIT BATCH CHERRY PICK COMMAND:'.red);
             hashArr.reverse();
             hashArr.forEach(function(hs, i){
                 //cmdArr.push('git cherry-pick --strategy=recursive -X theirs ' + ((i === 0) ? '--no-commit ' : '') + hs);
@@ -131,10 +134,12 @@ var ITEMS = (function(){
             log('');
 
         } else {
+
             log('No commits found for regex: ' + GIT_REGEX);
             if (GIT_AUTHOR) {
-                log('With author: ' + GIT_AUTHOR + '\n');
+                log('With author : "' + GIT_AUTHOR + '"\n');
             }
+
         }
 
 
