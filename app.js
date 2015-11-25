@@ -55,100 +55,93 @@ if (currBranch.output.length < 1) {
 
 
 // process output
-var ITEMS = (function(){
+var separator = '|@@|',
+    format = ['%h', '%cn', '%s'].join(separator),
+    // run git command to get logs
+    cmd = ['git log --format="'+format+'"', ((GIT_LOG_LINES && GIT_LOG_LINES !== 'all') ? ('-' + GIT_LOG_LINES) : '')].join(' '),
+    res = runGitCmd(cmd),
+    output = stripAnsi(res.output);
 
-    var arr = [],
-        separator = '|@@|',
-        format = ['%h', '%cn', '%s'].join(separator),
-        // run git command to get logs
-        cmd = ['git log --format="'+format+'"', ((GIT_LOG_LINES && GIT_LOG_LINES !== 'all') ? ('-' + GIT_LOG_LINES) : '')].join(' '),
-        res = runGitCmd(cmd),
-        output = stripAnsi(res.output);
+if (res.code !== 0) {
 
-    if (res.code !== 0) {
+    log('Error in execution.. (code='+res.code+')');
+    log(res);
 
-        log('Error in execution.. (code='+res.code+')');
-        log(res);
+} else if (output.length > 1) {
+    
+    var items = output.split('\n'),
+        found = [];
 
-    } else if (output.length > 1) {
-        
-        var items = output.split('\n'),
-            found = [];
+    items.forEach(function(item){
 
-        items.forEach(function(item){
+        item = _.trim(item);
 
-            item = _.trim(item);
+        if (item.length > 1) {
 
-            if (item.length > 1) {
+            var sp = item.split(separator),
+                hash = sp[0],
+                author = sp[1],
+                comment = sp[2] || '';
 
-                var sp = item.split(separator),
-                    hash = sp[0],
-                    author = sp[1],
-                    comment = sp[2] || '';
+            if (comment.length > 0) {
 
-                if (comment.length > 0) {
+                // if regex found
+                if (requiredCondition(comment)) {
 
-                    // if regex found
-                    if (requiredCondition(comment)) {
+                    var info = {
+                        hash: hash,
+                        author: author,
+                        comment: comment
+                    };
 
-                        var info = {
-                            hash: hash,
-                            author: author,
-                            comment: comment
-                        };
-
-                        // if there's an author
-                        if (GIT_AUTHOR && (author.toLowerCase()).indexOf(GIT_AUTHOR.toLowerCase()) > -1) {
-                            found.push(info);
-                        } else if (!GIT_AUTHOR) {
-                            found.push(info);
-                        }
+                    // if there's an author
+                    if (GIT_AUTHOR && (author.toLowerCase()).indexOf(GIT_AUTHOR.toLowerCase()) > -1) {
+                        found.push(info);
+                    } else if (!GIT_AUTHOR) {
+                        found.push(info);
                     }
-
                 }
 
             }
 
-        });
-
-        if (found.length > 0) {
-
-            var hashArr = [],
-                cmdArr = [];
-
-            // print out commits
-            log(('\nCommits' + ((GIT_AUTHOR) ? ' by author search "'+GIT_AUTHOR+'"' : '') + ':').green);
-            found.forEach(function(item){
-                log(item.hash.yellow, item.comment, ('(by: '+item.author+')').cyan);
-                hashArr.push(item.hash);
-            });
-
-            // build cherry-pick command
-            log('\nGIT BATCH CHERRY PICK COMMAND:'.red);
-            hashArr.reverse();
-            hashArr.forEach(function(hs, i){
-                //cmdArr.push('git cherry-pick --strategy=recursive -X theirs ' + ((i === 0) ? '--no-commit ' : '') + hs);
-                cmdArr.push('git cherry-pick --strategy=recursive -X theirs ' + hs);
-            });
-            log(cmdArr.join(' && '));
-            log('');
-
-        } else {
-
-            log('No commits found for regex: ' + GIT_REGEX);
-            if (GIT_AUTHOR) {
-                log('With author : "' + GIT_AUTHOR + '"\n');
-            }
-
         }
 
+    });
+
+    if (found.length > 0) {
+
+        var hashArr = [],
+            cmdArr = [];
+
+        // print out commits
+        log(('\nCommits' + ((GIT_AUTHOR) ? ' by author search "'+GIT_AUTHOR+'"' : '') + ':').green);
+        found.forEach(function(item){
+            log(item.hash.yellow, item.comment, ('(by: '+item.author+')').cyan);
+            hashArr.push(item.hash);
+        });
+
+        // build cherry-pick command
+        log('\nGIT BATCH CHERRY PICK COMMAND:'.red);
+        hashArr.reverse();
+        hashArr.forEach(function(hs, i){
+            //cmdArr.push('git cherry-pick --strategy=recursive -X theirs ' + ((i === 0) ? '--no-commit ' : '') + hs);
+            cmdArr.push('git cherry-pick --strategy=recursive -X theirs ' + hs);
+        });
+        log(cmdArr.join(' && '));
+        log('');
+
+    } else {
+
+        log('No commits found for regex: ' + GIT_REGEX);
+        if (GIT_AUTHOR) {
+            log('With author : "' + GIT_AUTHOR + '"\n');
+        }
 
     }
 
-    return arr;
 
+}
 
-}());
 
 function log() {
     var args = Array.prototype.slice.call(arguments);
