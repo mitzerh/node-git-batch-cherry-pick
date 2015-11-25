@@ -44,31 +44,31 @@ gitcp
 
 ## Examples
 
-1. Current directory is the repository
+* Current directory is the repository
 
 ```
 gitcp --regex="^BUG-452([0-9]+)"
 ```
 
-2. Repository is in another directory
+* Repository is in another directory
 
 ```
 gitcp --repo=/www/workspace/git/static/static-repo/ --regex="^TICKET-45([0-9]+)"
 ```
 
-3. Search the last 100 commits
+* Search the last 100 commits
 
 ```
 gitcp --regex="^TASK-52([0-9]+)" --nlogs=100
 ```
 
-4. Search for commits by Helcon
+* Search for commits by Helcon
 
 ```
 gitcp --regex="^BUG-12([0-9]+)" --author=helcon
 ```
 
-5. Search for commits by Helcon Mabesa
+* Search for commits by Helcon Mabesa
 
 ```
 gitcp --regex="^BUG-2([0-9]+)" --author="helcon mabesa"
