@@ -6,7 +6,13 @@ cd ${FILE_DIR}
 FULL_PATH=$(pwd)
 APP_PATH="${FULL_PATH}"
 
-MATCH_STR="GIT-CP ALIAS"
+MATCH_STR="****** /GIT-CP ALIAS @ https://github.com/mitzerh/node-git-batch-cherry-pick ******"
+MATCH_EOD_STR="****** EOF /GIT-CP ******"
+GIT_CP_CMD="git cherry-pick --strategy=recursive -X theirs"
+
+# aliases
+GIT_ALIAS_CP="gitcp"
+GIT_ALIAS_BATCHCP="batchcp"
 
 # if this dude does not have a bash profile, create one..
 if [ ! -f ~/.bash_profile ]; then
@@ -14,7 +20,24 @@ if [ ! -f ~/.bash_profile ]; then
     cat > ~/.bash_profile <<EOF
 
 # ${MATCH_STR}
-alias gitcp=${APP_PATH}/app.js
+
+alias ${GIT_ALIAS_CP}=${APP_PATH}/app.js
+
+function batchcgitcp_fn {
+
+    if [ "\$1" != "" ]; then
+        while IFS=',' read -ra LIST; do
+            for HASH in "\${LIST[@]}"; do
+                ${GIT_CP_CMD} \${HASH}
+            done
+        done <<< "\$1"
+    fi
+
+}
+
+alias ${GIT_ALIAS_BATCHCP}=batchcgitcp_fn
+
+# ${MATCH_EOD_STR}
 
 EOF
 
@@ -36,7 +59,22 @@ else
         cat >> ~/.bash_profile <<EOF
 
 # ${MATCH_STR}
-alias gitcp=${APP_PATH}/app.js
+
+alias ${GIT_ALIAS_CP}=${APP_PATH}/app.js
+
+function batchcgitcp_fn {
+    if [ "\$1" != "" ]; then
+        while IFS=',' read -ra LIST; do
+            for HASH in "\${LIST[@]}"; do
+                ${GIT_CP_CMD} \${HASH}
+            done
+        done <<< "\$1"
+    fi
+}
+
+alias ${GIT_ALIAS_BATCHCP}=batchcgitcp_fn
+
+# ${MATCH_EOD_STR}
 
 EOF
     
@@ -50,4 +88,5 @@ fi
 
 source ~/.bash_profile
 
-echo "done."
+echo "done!"
+echo "Check examples to run the script @ https://github.com/mitzerh/node-git-batch-cherry-pick"

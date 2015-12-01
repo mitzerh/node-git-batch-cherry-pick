@@ -25,6 +25,8 @@ This installation will add an alias on your `.bash_profile` which is by default 
 
 Modify if you already have this alias set.
 
+**NOTE:** If you need to do a clean **re-install**, you will have to remove the added aliases on your `.bash_profile`
+
 
 ## Run
 
@@ -38,22 +40,24 @@ gitcp
 
 * **--regex** *(required)* Regular expression to search on the commit logs
 * **--repo** *(optional)* GIT repository directory (default: current directory you are executing)
+* **--branch** *(optional)* Branch where to cherry pick commits (default: current branch)
 * **--nlogs** *(optional)* # of previous commits to check (default: the last 5,000 commits)
 * **--author** *(optional)* simple string index, left-to-right, ignorecase author field search (default: all commits)
 
+**Note:** When cherry picking from another branch, remember to pass the `--branch` argument
 
 ## Examples
 
 * Current directory is the repository
 
 ```
-gitcp --regex="^BUG-452([0-9]+)"
+gitcp --regex="^BUG-452([0-9]+)" --branch=feature/BUGS
 ```
 
 * Repository is in another directory
 
 ```
-gitcp --repo=/www/workspace/git/static/static-repo/ --regex="^TICKET-45([0-9]+)"
+gitcp --repo=/www/workspace/git/static/static-repo/ --regex="^TICKET-45([0-9]+)" --branch=staging/TICKETS
 ```
 
 * Search the last 100 commits
@@ -65,7 +69,7 @@ gitcp --regex="^TASK-52([0-9]+)" --nlogs=100
 * Search for commits by Helcon
 
 ```
-gitcp --regex="^BUG-12([0-9]+)" --author=helcon
+gitcp --regex="^BUG-12([0-9]+)" --author=helcon --branch=develop
 ```
 
 * Search for commits by Helcon Mabesa

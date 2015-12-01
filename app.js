@@ -12,10 +12,14 @@ var dir = __dirname,
 var GIT_REGEX = Helper.getOpt('regex') || false,
     // repo path
     GIT_PATH = Helper.getOpt('repo') || './',
+    // branch to get the logs from
+    GIT_BRANCH = Helper.getOpt('branch') || '',
     // author
     GIT_AUTHOR = Helper.getOpt('author') || false,
     // how many number of logs prior to search
-    GIT_LOG_LINES = Helper.getOpt('nlogs') || 5000;
+    GIT_LOG_LINES = Helper.getOpt('nlogs') || 5000,
+    // raw git cherry pick command (not using the alias)
+    RAW_GIT_CPCMD = Helper.getOpt('rawcp') || false;
 
 if (!GIT_REGEX) {
     log('requires a regex!'.red, '\n');
@@ -46,11 +50,16 @@ var currBranch = runGitCmd('git branch 2> /dev/null | sed -e \'/^[^*]/d\' -e \'s
 if (currBranch.output.length < 1) {
     log('The path @ ' + GIT_PATH + ' is not a GIT repository..'.red, '\n');
     return false;
-} else {
-    if (GIT_PATH !== './') {
-        log('Repository directory      :'.green, GIT_PATH);
-    }
-    log('Repository current branch :'.green, (stripAnsi(currBranch.output)).replace(/[^a-z0-9\-_\/]/g, ''));
+}
+
+// continue..
+if (GIT_PATH !== './') {
+    log('Repo directory      :'.green, GIT_PATH);
+}
+log('Repo current branch :'.green, (stripAnsi(currBranch.output)).replace(/[^a-z0-9\-_\/]/g, ''));
+
+if (GIT_BRANCH) {
+    log('Repo source branch  :'.green, GIT_BRANCH);
 }
 
 
@@ -58,7 +67,7 @@ if (currBranch.output.length < 1) {
 var separator = '|@@|',
     format = ['%h', '%cn', '%s'].join(separator),
     // run git command to get logs
-    cmd = ['git log --format="'+format+'"', ((GIT_LOG_LINES && GIT_LOG_LINES !== 'all') ? ('-' + GIT_LOG_LINES) : '')].join(' '),
+    cmd = ['git log', GIT_BRANCH, ' --format="'+format+'"', ((GIT_LOG_LINES && GIT_LOG_LINES !== 'all') ? ('-' + GIT_LOG_LINES) : '')].join(' '),
     res = runGitCmd(cmd),
     output = stripAnsi(res.output);
 
@@ -123,11 +132,22 @@ if (res.code !== 0) {
         // build cherry-pick command
         log('\nGIT BATCH CHERRY PICK COMMAND:'.red);
         hashArr.reverse();
-        hashArr.forEach(function(hs, i){
-            //cmdArr.push('git cherry-pick --strategy=recursive -X theirs ' + ((i === 0) ? '--no-commit ' : '') + hs);
-            cmdArr.push('git cherry-pick --strategy=recursive -X theirs ' + hs);
-        });
-        log(cmdArr.join(' && '));
+
+        if (RAW_GIT_CPCMD) {
+
+            hashArr.forEach(function(hs, i){
+                //cmdArr.push('git cherry-pick --strategy=recursive -X theirs ' + ((i === 0) ? '--no-commit ' : '') + hs);
+                cmdArr.push('git cherry-pick --strategy=recursive -X theirs ' + hs);
+            });
+
+            log(cmdArr.join(' && '));
+
+        } else {
+
+            log('batchcp ' + hashArr.join(','));
+
+        }
+        
         log('');
 
     } else {
