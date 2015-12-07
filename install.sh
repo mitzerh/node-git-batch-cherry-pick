@@ -18,6 +18,7 @@ GIT_ALIAS_BATCHCP="batchcp"
 if [ ! -f ~/.bash_profile ]; then
 
     cat > ~/.bash_profile <<EOF
+#!/bin/bash
 
 # ${MATCH_STR}
 
@@ -40,6 +41,11 @@ alias ${GIT_ALIAS_BATCHCP}=batchcgitcp_fn
 # ${MATCH_EOD_STR}
 
 EOF
+
+# executable
+chmod +x ~/.bash_profile
+# reload bash_profile
+source ~/.bash_profile
 
 else
 
