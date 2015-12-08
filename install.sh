@@ -14,6 +14,10 @@ GIT_CP_CMD="git cherry-pick --strategy=recursive -X theirs"
 GIT_ALIAS_CP="gitcp"
 GIT_ALIAS_BATCHCP="batchcp"
 
+# node install
+echo "installing app dependencies.."
+cd ${APP_PATH} && rm -rf node_modules && npm install
+
 # if this dude does not have a bash profile, create one..
 if [ ! -f ~/.bash_profile ]; then
 
@@ -86,12 +90,14 @@ EOF
     
     else
 
-        echo "already set.."
+        echo "bash profile already set.."
 
     fi
 
 fi
 
+# reload bash profile
+echo "reloading bash profile.."
 source ~/.bash_profile
 
 echo "done!"
