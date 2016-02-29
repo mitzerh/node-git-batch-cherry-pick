@@ -12,10 +12,14 @@ var dir = __dirname,
 var GIT_REGEX = Helper.getOpt('regex') || false,
     // repo path
     GIT_PATH = Helper.getOpt('repo') || './',
+    // folder to get logs on
+    GIT_FOLDER = Helper.getOpt('folder') || '',
     // branch to get the logs from
     GIT_BRANCH = Helper.getOpt('branch') || '',
     // author
     GIT_AUTHOR = Helper.getOpt('author') || false,
+    // after
+    GIT_AFTER = Helper.getOpt('after') || false,
     // how many number of logs prior to search
     GIT_LOG_LINES = Helper.getOpt('nlogs') || 5000,
     // raw git cherry pick command (not using the alias)
@@ -65,10 +69,20 @@ if (GIT_BRANCH) {
 
 // process output
 var separator = '|@@|',
-    format = ['%h', '%cn', '%s'].join(separator),
-    // run git command to get logs
-    cmd = ['git log', GIT_BRANCH, ' --format="'+format+'"', ((GIT_LOG_LINES && GIT_LOG_LINES !== 'all') ? ('-' + GIT_LOG_LINES) : '')].join(' '),
-    res = runGitCmd(cmd),
+    format = ['%h', '%cn', '%s'].join(separator);
+
+// run git command to get logs
+var cmd = [
+    'git log',
+    GIT_BRANCH,
+    ' --format="'+format+'"',
+    (GIT_LOG_LINES && GIT_LOG_LINES !== 'all') ? ('-' + GIT_LOG_LINES) : '',
+    (GIT_AFTER) ? ('--after="' + GIT_AFTER + '"') : '',
+    GIT_FOLDER
+].join(' ');
+
+
+var res = runGitCmd(cmd),
     output = stripAnsi(res.output);
 
 if (res.code !== 0) {
@@ -77,7 +91,7 @@ if (res.code !== 0) {
     log(res);
 
 } else if (output.length > 1) {
-    
+
     var items = output.split('\n'),
         found = [];
 
@@ -147,7 +161,7 @@ if (res.code !== 0) {
             log('batchcp ' + hashArr.join(','));
 
         }
-        
+
         log('');
 
     } else {

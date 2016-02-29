@@ -43,6 +43,9 @@ gitcp
 * **--branch** *(optional)* Branch where to cherry pick commits (default: current branch)
 * **--nlogs** *(optional)* # of previous commits to check (default: the last 5,000 commits)
 * **--author** *(optional)* simple string index, left-to-right, ignorecase author field search (default: all commits)
+* **--folder** *(optional)* search on specific folder path
+* **--after** *(optional)* search with using git --after flag
+
 
 **Note:** When cherry picking from another branch, remember to pass the `--branch` argument
 
@@ -76,5 +79,18 @@ gitcp --regex="^BUG-12([0-9]+)" --author=helcon --branch=develop
 
 ```
 gitcp --regex="^BUG-2([0-9]+)" --author="helcon mabesa"
+```
+
+* Search for commits by Helcon after January 1, 2016
+
+
+```
+gitcp --regex="^BUG-12([0-9]+)" --author=helcon --after=2016-01-01
+```
+
+* Search for all commits on the specific folder `directory/stuff-yo` after January 31, 2016
+
+```
+gitcp --regex="(.*)" --after=2016-01-31 --folder=directory
 ```
 
